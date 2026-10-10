@@ -11,3 +11,6 @@ python-dotenv>=1.0.0
 
 # 阶段②：向量检索（Chroma 向量数据库）
 chromadb==1.5.9
+
+# 阶段③进阶：LangGraph（用图来编排 Agent 的 ReAct 循环，见 agent_langgraph.py）
+langgraph==1.2.14

@@ -6,7 +6,7 @@
 
 能用自然语言对话，帮你查询、诊断 Linux / Docker / Kubernetes 环境的 AI 运维助手。
 
-**技术栈**：Python 3.12 · LangChain · DeepSeek（OpenAI 兼容接口）· Chroma · 智谱 Embedding · Docker · Kubernetes
+**技术栈**：Python 3.12 · LangChain · LangGraph · DeepSeek（OpenAI 兼容接口）· Chroma · 智谱 Embedding · Docker · Kubernetes
 
 ## 系统架构
 
@@ -41,6 +41,7 @@ flowchart TD
 - [x] 阶段①：最小可运行的对话 Agent（多轮记忆）
 - [x] 阶段②：接入 RAG 知识库（关键词检索 → 已升级向量检索）
 - [x] 阶段③：接入工具调用（ReAct 循环，模拟工具 → 已升级真实命令）
+- [x] 阶段③进阶：LangGraph 版 Agent（用 StateGraph 重写 ReAct，对比手写实现）
 - [x] 阶段④：容器化部署到 K8s（Docker 镜像构建 + K8s 部署，已实跑通过）
 
 ## 运行截图
@@ -108,7 +109,8 @@ kubectl apply -f deploy/cloudops-agent.yaml
 CloudOps-Agent/
 ├── src/
 │   ├── app.py             # 主入口（RAG + 工具调用完整版）
-│   ├── agent.py           # ToolCallingAgent（ReAct 循环）
+│   ├── agent.py           # ToolCallingAgent（手写 ReAct 循环）
+│   ├── agent_langgraph.py # LangGraph 版 Agent（StateGraph 重写 ReAct）
 │   ├── tools.py           # 工具层（真实命令 + 模拟降级）
 │   ├── rag.py             # RAG 链路（Keyword/Vector 检索器）
 │   ├── embedding.py       # 智谱 Embedding 封装
@@ -134,6 +136,7 @@ CloudOps-Agent/
 | ① 最小 Agent | 对话脚本 | Prompt、多轮记忆 |
 | ② RAG | 知识库检索增强 | Embedding、向量检索、语义匹配 |
 | ③ 工具调用 | ReAct 循环 | Function Call、思考-行动-观察 |
+| ③进阶 LangGraph | StateGraph 编排 | State/Node/Edge、框架 vs 手写 |
 | ④ 容器化 | Docker + K8s | 镜像、编排、Secret |
 
 ## 学习笔记
@@ -141,6 +144,7 @@ CloudOps-Agent/
 - `docs/项目规划.md`：完整项目规划与路线
 - `docs/阶段②RAG说明.md`：RAG 设计与向量检索升级
 - `docs/阶段③工具调用说明.md`：工具调用机制与 ReAct
+- `docs/阶段③进阶-LangGraph版说明.md`：LangGraph 版实现 + 手写版对比
 - `docs/阶段④容器化部署说明.md`：Dockerfile / K8s / 真实工具
 - `docs/踩坑复盘笔记.md`：技术难点复盘（面试加分项）
 - `docs/面试问答手册.md`：高频面试问题及答案
