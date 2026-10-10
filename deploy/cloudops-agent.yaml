@@ -1,0 +1,96 @@
+# ============================================================
+# CloudOps Agent —— Kubernetes 部署清单
+#
+# 作用：把 Agent 部署到 Kubernetes 集群（Docker Desktop 内置 K8s 即可）
+#
+# 部署命令：
+#   kubectl apply -f deploy/cloudops-agent.yaml
+#
+# 查看状态：
+#   kubectl get pods -n cloudops
+#   kubectl get svc -n cloudops
+#
+# 学习要点：
+# 1. Secret：存放敏感配置（API Key），与代码分离，不写死在 Deployment 里
+# 2. Deployment：管理 Pod 副本，保证服务高可用
+# 3. Service：给 Pod 提供稳定的访问入口
+# ============================================================
+
+---
+# ---- 1. 命名空间：隔离这个项目 ----
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cloudops
+
+# ---- 2. Secret：存放 API Key ----
+# 说明：为避免真实 Key 被提交到 Git 仓库，Secret 不在此文件中定义，
+# 而是通过命令行单独创建（Key 只存在于集群内，不进版本库）：
+#
+#   kubectl create secret generic cloudops-secret \
+#     --namespace cloudops \
+#     --from-literal=DEEPSEEK_API_KEY=你的key \
+#     --from-literal=DEEPSEEK_BASE_URL=https://api.deepseek.com \
+#     --from-literal=DEEPSEEK_MODEL=deepseek-chat \
+#     --from-literal=ZHIPU_API_KEY=你的key \
+#     --from-literal=ZHIPU_BASE_URL=https://open.bigmodel.cn/api/paas/v4 \
+#     --from-literal=ZHIPU_EMBEDDING_MODEL=embedding-2
+#
+# 下方 Deployment 通过 envFrom + secretRef 引用这个 Secret。
+
+---
+# ---- 3. Deployment：管理 Agent 的 Pod ----
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cloudops-agent
+  namespace: cloudops
+  labels:
+    app: cloudops-agent
+spec:
+  replicas: 1  # 副本数，演示用 1 个即可
+  selector:
+    matchLabels:
+      app: cloudops-agent
+  template:
+    metadata:
+      labels:
+        app: cloudops-agent
+    spec:
+      containers:
+        - name: cloudops-agent
+          image: cloudops-agent:latest  # 本地构建的镜像名
+          imagePullPolicy: IfNotPresent  # 本地已有镜像就不拉取
+          # 从 Secret 注入环境变量（比写死在 yaml 里更安全）
+          envFrom:
+            - secretRef:
+                name: cloudops-secret
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          # 容器是交互式命令行，stdin 保持打开以便进入容器对话
+          stdin: true
+          tty: true
+
+---
+# ---- 4. Service：给 Pod 提供访问入口 ----
+# （Agent 是命令行交互式，主要通过 kubectl exec 进入，Service 这里作为预留）
+apiVersion: v1
+kind: Service
+metadata:
+  name: cloudops-agent
+  namespace: cloudops
+  labels:
+    app: cloudops-agent
+spec:
+  selector:
+    app: cloudops-agent
+  type: ClusterIP  # 集群内部访问；如需外部访问可改 NodePort
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP

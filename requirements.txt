@@ -1,0 +1,13 @@
+# CloudOps Agent 依赖清单
+# 安装方式见 README.md，或直接运行：
+#   pip install -r requirements.txt
+#
+# 注意：版本已锁定到本地已验证可用的版本，避免容器内装到不兼容的新版。
+
+# 阶段①：LangChain + OpenAI 兼容接口（DeepSeek）
+langchain-core==1.6.9
+langchain-openai==1.7.0
+python-dotenv>=1.0.0
+
+# 阶段②：向量检索（Chroma 向量数据库）
+chromadb==1.5.9
