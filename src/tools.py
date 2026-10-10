@@ -53,16 +53,21 @@ def _run(cmd_list, timeout: int = 10) -> str:
 # 真实工具（优先使用，需要 kubectl / docker 环境）
 # ============================================================
 
-def get_pods(namespace: str = "default") -> str:
+def get_pods(namespace: str = "") -> str:
     """
     查询 Kubernetes 集群中指定命名空间下的 Pod 列表及状态。
-    参数 namespace：命名空间名称，默认 default。
+    参数 namespace：命名空间名称，为空时查询所有命名空间（等价 kubectl get pods -A）。
     返回：Pod 名称和状态。
     """
     if _has_cmd("kubectl"):
-        out = _run(["kubectl", "get", "pods", "-n", namespace])
+        if namespace:
+            out = _run(["kubectl", "get", "pods", "-n", namespace])
+            label = f"命名空间 {namespace} 下的 Pod：\n"
+        else:
+            out = _run(["kubectl", "get", "pods", "-A"])
+            label = "所有命名空间的 Pod：\n"
         if not out.startswith("["):
-            return f"命名空间 {namespace} 下的 Pod：\n{out}"
+            return label + out
         # 命令执行失败（比如没连上集群），降级为模拟数据
     return _mock_get_pods(namespace)
 
@@ -190,13 +195,13 @@ def get_tool_list():
     return [
         {
             "name": "get_pods",
-            "description": "查询 Kubernetes 集群中指定命名空间下的 Pod 列表及状态。",
+            "description": "查询 Kubernetes 集群的 Pod 列表及状态。不传 namespace 时查询所有命名空间。",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "namespace": {
                         "type": "string",
-                        "description": "命名空间名称，默认 default",
+                        "description": "命名空间名称。留空则查询所有命名空间（推荐，可一次看到全部 Pod）",
                     }
                 },
             },

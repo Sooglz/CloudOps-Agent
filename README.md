@@ -41,7 +41,22 @@ flowchart TD
 - [x] 阶段①：最小可运行的对话 Agent（多轮记忆）
 - [x] 阶段②：接入 RAG 知识库（关键词检索 → 已升级向量检索）
 - [x] 阶段③：接入工具调用（ReAct 循环，模拟工具 → 已升级真实命令）
-- [x] 阶段④：容器化部署到 K8s（Dockerfile + K8s manifest 已就绪，待装 Docker 环境实跑）
+- [x] 阶段④：容器化部署到 K8s（Docker 镜像构建 + K8s 部署，已实跑通过）
+
+## 运行截图
+
+| 截图 | 说明 |
+|------|------|
+| ![多轮对话](screenshots/01-agent-chat.jpg) | 多轮对话与记忆 |
+| ![向量检索](screenshots/02-vector-search.jpg) | RAG 向量检索（问「容器崩了」命中「CrashLoopBackOff」） |
+| ![工具调用](screenshots/03-real-tool-call.jpg) | 真实工具调用（Agent 查询到 K8s 集群中的 Pod） |
+| ![工具改进前](screenshots/03-tool-calls-before-fix.jpg) | 工具调用改进前（默认只查 default 命名空间） |
+| ![Docker 镜像](screenshots/04-docker-image.jpg) | 构建好的 CloudOps Agent 镜像 |
+| ![K8s 部署](screenshots/05-k8s-deploy.jpg) | 部署到 Kubernetes 集群 |
+| ![GitHub 仓库](screenshots/06-github-repo.jpg) | 项目仓库首页 |
+| ![集群状态](screenshots/07-k8s-cluster-status.jpg) | 压轴演示：Agent 查询真实 K8s 集群节点与全部 Pod 状态 |
+
+> 完整的技术难点复盘见 [docs/踩坑复盘笔记.md](docs/踩坑复盘笔记.md)。
 
 ## 快速开始
 
@@ -102,6 +117,7 @@ CloudOps-Agent/
 ├── data/
 │   └── docs/              # 知识库文档（K8s/Docker/Linux 手册）
 ├── docs/                  # 各阶段说明 + 项目规划
+├── screenshots/           # 运行截图（作品集素材）
 ├── deploy/
 │   └── cloudops-agent.yaml  # K8s 部署清单
 ├── Dockerfile             # 镜像构建定义
